@@ -8,7 +8,6 @@ using BenchmarkDotNet.Attributes;
 
 namespace Benchmarks.Benchmarks;
 
-[DisassemblyDiagnoser]
 public class ByteArrayEqualityBenchmark
 {
 	private byte[] aArr;

@@ -20,7 +20,7 @@ public static class ImageProcessingAlgorithms
 
 		for (var y = 0; y < height; y++)
 		{
-			for (var x = 0; x < bytesPerLine; x += bitesPerPixel)
+			for (var x = 0; x < bytesPerLine; x++)
 			{
 				var i = y * bytesPerLine + x;
 
