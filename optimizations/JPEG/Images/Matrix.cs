@@ -40,7 +40,7 @@ class Matrix
                 for (var i = 0; i < width; i++)
                 {
                     var offset = i * 3;
-                    matrix.Pixels[j, i] = new Pixel(row[offset], row[offset + 1], row[i + 2], PixelFormat.RGB);
+                    matrix.Pixels[j, i] = new Pixel(row[offset], row[offset + 1], row[offset + 2], PixelFormat.RGB);
                 }
             }
         }
@@ -73,7 +73,7 @@ class Matrix
                 row[offset + 2] = (byte)pixel.R;
             }
         }
-
+        
         bmp.UnlockBits(bitData);
         return bmp;
     }

@@ -1,41 +1,44 @@
 ﻿using System;
-using System.Collections.Generic;
-using JPEG.Utilities;
+using System.Threading.Tasks;
 
 namespace JPEG;
 
 public class DCT
 {
     private static readonly double alpha = 1 / Math.Sqrt(2);
-    private static Dictionary<int, double> MemoX = new Dictionary<int, double>();
+
     public static double[,] DCT2D(double[,] input)
     {
         var height = input.GetLength(0);
         var width = input.GetLength(1);
         var coeffs = new double[width, height];
-
-        var alphaU = alpha;
-        for (var u = 0; u < width; u++)
+        var threads = 3;
+        Parallel.For(0, threads, (t) =>
         {
-            var alphaV = alpha;
-            for (var v = 0; v < height; v++)
+            var alphaU = alpha;
+            for (var u = width / threads * t; u < width / threads * (t + 1); u++)
             {
-                var sum = 0d;
-                for (var x = 0; x < width; x++)
-                for (var y = 0; y < height; y++)
+                var alphaV = alpha;
+                for (var v = height / threads * t; v < height / threads * (t + 1); v++)
                 {
-                    var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
-                    var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
-                    var answer = b * c * input[u, v];
-                    sum += answer;
+                    var sum = 0d;
+                    for (var x = width / threads * t; x < width / threads * (t + 1); x++)
+                    for (var y = height / threads * t; y < height / threads * (t + 1); y++)
+                    {
+                        var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
+                        var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
+                        var answer = b * c * input[u, v];
+                        sum += answer;
+                    }
+
+                    coeffs[u, v] = sum * Beta(height, width) * alphaU * alphaV;
+                    alphaV = 1;
                 }
 
-                coeffs[u, v] = sum * Beta(height, width) * alphaU * alphaV;
-                alphaV = 1;
+                alphaU = 1;
             }
+        });
 
-            alphaU = 1;
-        }
 
         return coeffs;
     }
@@ -44,34 +47,37 @@ public class DCT
     {
         var height = coeffs.GetLength(0);
         var width = coeffs.GetLength(1);
-    
+        var threads = 4;
 
-        for (var x = 0; x < width; x++)
+        Parallel.For(0, threads, (t) =>
         {
-            for (var y = 0; y < height; y++)
+            for (var x = width / threads * t; x < width / threads * (t + 1); x++)
             {
-                var sum = 0d;
-                var alphaU = alpha;
-                for (var u = 0; u < width; u++)
+                for (var y = height / threads * t; y < height / threads * (t + 1); y++)
                 {
-                    var alphaV = alpha;
-                    for (var v = 0; v < height; v++)
+                    var sum = 0d;
+                    var alphaU = alpha;
+                    for (var u = width / threads * t; u < width / threads * (t + 1); u++)
                     {
-                        var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
-                        var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
-                        var answer = b * c * coeffs[u, v] * alphaU * alphaV;
+                        var alphaV = alpha;
+                        for (var v = height / threads * t; v < height / threads * (t + 1); v++)
+                        {
+                            var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
+                            var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
+                            var answer = b * c * coeffs[u, v] * alphaU * alphaV;
 
-                        sum += answer;
-                        alphaV = 1;
+                            sum += answer;
+                            alphaV = 1;
+                        }
+
+                        alphaU = 1;
                     }
 
-                    alphaU = 1;
+
+                    output[x, y] = sum * Beta(coeffs.GetLength(0), coeffs.GetLength(1));
                 }
-
-
-                output[x, y] = sum * Beta(coeffs.GetLength(0), coeffs.GetLength(1));
             }
-        }
+        });
     }
 
     public static double BasisFunction(double a, double u, double v, double x, double y, int height, int width)

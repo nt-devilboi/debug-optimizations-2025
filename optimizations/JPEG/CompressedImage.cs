@@ -18,6 +18,7 @@ public class CompressedImage
 
 	public void Save(string path)
 	{
+		Console.WriteLine($"path {path}");
 		using(var sw = new FileStream(path, FileMode.Create))
 		{
 			byte[] buffer;

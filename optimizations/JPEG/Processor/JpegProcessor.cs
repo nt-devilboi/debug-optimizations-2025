@@ -22,7 +22,7 @@ public class JpegProcessor : IJpegProcessor
         var imageMatrix = (Matrix)bmp;
         //Console.WriteLine($"{bmp.Width}x{bmp.Height} - {fileStream.Length / (1024.0 * 1024):F2} MB");
         var compressionResult = Compress(imageMatrix, CompressionQuality);
-        compressionResult.Save(compressedImagePath);
+        compressionResult.Save("./" + compressedImagePath);
     }
 
     public void Uncompress(string compressedImagePath, string uncompressedImagePath)
@@ -127,6 +127,7 @@ public class JpegProcessor : IJpegProcessor
         return result;
     }
 
+    
     private static IEnumerable<byte> ZigZagScan(byte[,] channelFreqs)
     {
         return new[]

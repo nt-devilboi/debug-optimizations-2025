@@ -21,7 +21,7 @@ internal class Program
 			sw.Restart();
 			processor.Compress(imagePath, compressedImagePath);
 			sw.Stop();
-			Console.WriteLine("Compression: " + sw.ElapsedMilliseconds);
+			Console.WriteLine("Compression: " + sw.ElapsedMilliseconds + compressedImagePath);
 
 			sw.Restart();
 			processor.Uncompress(compressedImagePath, uncompressedImagePath);
