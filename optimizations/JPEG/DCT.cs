@@ -5,65 +5,81 @@ namespace JPEG;
 
 public class DCT
 {
-	public static double[,] DCT2D(double[,] input)
-	{
-		var height = input.GetLength(0);
-		var width = input.GetLength(1);
-		var coeffs = new double[width, height];
+    private static readonly double Alphas = 1 / Math.Sqrt(2);
 
-		MathEx.LoopByTwoVariables(
-			0, width,
-			0, height,
-			(u, v) =>
-			{
-				var sum = MathEx
-					.SumByTwoVariables(
-						0, width,
-						0, height,
-						(x, y) => BasisFunction(input[x, y], u, v, x, y, height, width));
+    public static double[,] DCT2D(double[,] input)
+    {
+        int height = input.GetLength(0);
+        int width = input.GetLength(1);
+        double[,] coeffs = new double[width, height];
 
-				coeffs[u, v] = sum * Beta(height, width) * Alpha(u) * Alpha(v);
-			});
+        var alphau = Alphas;
+        for (int u = 0; u < width; u++)
+        {
+            var alphav = Alphas;
+            for (int v = 0; v < height; v++)
+            {
+                double sum = 0;
+                for (int x = 0; x < width; x++)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        sum += BasisFunction(input[x, y], u, v, x, y, height, width);
+                    }
+                }
 
-		return coeffs;
-	}
+                coeffs[u, v] = sum * Beta(height, width) * alphau * alphav;
 
-	public static void IDCT2D(double[,] coeffs, double[,] output)
-	{
-		for (var x = 0; x < coeffs.GetLength(1); x++)
-		{
-			for (var y = 0; y < coeffs.GetLength(0); y++)
-			{
-				var sum = MathEx
-					.SumByTwoVariables(
-						0, coeffs.GetLength(1),
-						0, coeffs.GetLength(0),
-						(u, v) =>
-							BasisFunction(coeffs[u, v], u, v, x, y, coeffs.GetLength(0), coeffs.GetLength(1)) *
-							Alpha(u) * Alpha(v));
+                alphav = 1;
+            }
 
-				output[x, y] = sum * Beta(coeffs.GetLength(0), coeffs.GetLength(1));
-			}
-		}
-	}
+            alphau = 1;
+        }
 
-	public static double BasisFunction(double a, double u, double v, double x, double y, int height, int width)
-	{
-		var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
-		var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
+        return coeffs;
+    }
 
-		return a * b * c;
-	}
+    public static void IDCT2D(double[,] coeffs, double[,] output)
+    {
+        int height = coeffs.GetLength(0);
+        int width = coeffs.GetLength(1);
 
-	private static double Alpha(int u)
-	{
-		if (u == 0)
-			return 1 / Math.Sqrt(2);
-		return 1;
-	}
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                double sum = 0;
+                var alphau = Alphas;
+                for (int u = 0; u < width; u++)
+                {
+                    var alphav = Alphas;
+                    for (int v = 0; v < height; v++)
+                    {
+                        sum += BasisFunction(coeffs[u, v], u, v, x, y, height, width) * alphau * alphav;
 
-	private static double Beta(int height, int width)
-	{
-		return 1d / width + 1d / height;
-	}
+                        alphav = 1;
+                    }
+
+                    alphau = 1;
+                }
+
+                output[x, y] = sum * Beta(height, width);
+            }
+        }
+    }
+
+    public static double BasisFunction(double a, double u, double v, double x, double y, int height, int width)
+    {
+        var b = Math.Cos(((2d * x + 1d) * u * Math.PI) / (2 * width));
+        var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
+
+        return a * b * c;
+    }
+
+
+
+    private static double Beta(int height, int width)
+    {
+        return 1d / width + 1d / height;
+    }
 }
