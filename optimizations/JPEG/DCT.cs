@@ -1,18 +1,19 @@
 ﻿using System;
-using JPEG.Utilities;
+using System.Collections.Concurrent;
 
 namespace JPEG;
 
 public class DCT
 {
     private static readonly double Alphas = 1 / Math.Sqrt(2);
+    private static readonly ConcurrentDictionary<(double, double), double> bCahse = new();
 
     public static double[,] DCT2D(double[,] input)
     {
         int height = input.GetLength(0);
         int width = input.GetLength(1);
-        double[,] coeffs = new double[width, height];
-
+        var beta = 1d / width + 1d / height;
+        var coeffs = new double[width, height];
         var alphau = Alphas;
         for (int u = 0; u < width; u++)
         {
@@ -28,7 +29,7 @@ public class DCT
                     }
                 }
 
-                coeffs[u, v] = sum * Beta(height, width) * alphau * alphav;
+                coeffs[u, v] = sum * beta * alphau * alphav;
 
                 alphav = 1;
             }
@@ -43,7 +44,7 @@ public class DCT
     {
         int height = coeffs.GetLength(0);
         int width = coeffs.GetLength(1);
-
+        var beta = 1d / width + 1d / height;
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
@@ -63,7 +64,7 @@ public class DCT
                     alphau = 1;
                 }
 
-                output[x, y] = sum * Beta(height, width);
+                output[x, y] = sum * beta;
             }
         }
     }
@@ -74,12 +75,5 @@ public class DCT
         var c = Math.Cos(((2d * y + 1d) * v * Math.PI) / (2 * height));
 
         return a * b * c;
-    }
-
-
-
-    private static double Beta(int height, int width)
-    {
-        return 1d / width + 1d / height;
     }
 }

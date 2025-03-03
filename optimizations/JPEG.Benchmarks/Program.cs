@@ -1,11 +1,17 @@
-﻿using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Loggers;
+using BenchmarkDotNet.Running;
 
 namespace JPEG.Benchmarks;
 
 internal class Program
 {
-	public static void Main(string[] args)
-	{
-		BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);
-	}
+    public static void Main(string[] args)
+    {
+        var manualSettings = new ManualConfig().WithOption(ConfigOptions.DisableOptimizationsValidator, true)
+            .AddLogger(ConsoleLogger.Default)
+            .AddColumnProvider(DefaultColumnProviders.Instance);
+        BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args, manualSettings);
+    }
 }
